@@ -129,7 +129,7 @@ class ParserContent01(Parser):
         ('desk_code',       G_N,     5),
         ('currency_code',   G_A_,    3),
         ('nb_of_dec',       G_N_,    1),
-        ('_2',              G__,     1),
+        ('_2',              G_N_,    1),
         ('account_nb',      G_AN,   11),
         ('_3',              G__,     2),
         ('prev_date',       G_N,     6),
@@ -216,7 +216,7 @@ class ParserContent07(Parser):
         ('desk_code',       G_N,     5),
         ('currency_code',   G_A_,    3),
         ('nb_of_dec',       G_N_,    1),
-        ('_2',              G__,     1),
+        ('_2',              G_N_,    1),
         ('account_nb',      G_AN,   11),
         ('_3',              G__,     2),
         ('next_date',       G_N,     6),
@@ -410,7 +410,8 @@ def parse_amount(amount_str, nb_of_dec):
     """
     # insert the comma
     nb_of_dec = int(nb_of_dec)
-    amount_str = amount_str[:-nb_of_dec] + '.' + amount_str[-nb_of_dec:]
+    if nb_of_dec:
+      amount_str = amount_str[:-nb_of_dec] + '.' + amount_str[-nb_of_dec:]
     # translate the last char and set the sign
     credit_trans = {'A': '1', 'B': '2', 'C': '3', 'D': '4', 'E': '5',
                     'F': '6', 'G': '7', 'H': '8', 'I': '9', '{': '0'}
@@ -443,8 +444,14 @@ def write_amount(amount, nb_of_dec):
     # split amount, ex.: (123.4, 2) -> dec = 40, num = 123
     dec, num = math.modf(amount)
     num = str(abs(num)).split('.')[0]
-    dec = '0' * nb_of_dec if dec == 0\
-            else str(abs(dec * math.pow(10, nb_of_dec))).split('.')[0]
+    if nb_of_dec:
+      dec = '0' * nb_of_dec if dec == 0\
+              else str(abs(dec * math.pow(10, nb_of_dec))).split('.')[0]
+    else:
+      if dec:
+        raise Exception('Bad amount if %s decimals' % nb_of_dec)
+      dec = num[-2:]
+      num = num[:-2]
     # translate the last char and set the sign
     credit_trans = ['{', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']
     debit_trans  = ['}', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R']
